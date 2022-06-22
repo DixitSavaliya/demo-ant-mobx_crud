@@ -33,7 +33,6 @@ const Login = inject('store')(
                 {login && (
                     <Navigate to="/" replace={true} />
                 )}
-
                 <div className='login'>
                 <Form layout="vertical" >
                     <Form.Item>
