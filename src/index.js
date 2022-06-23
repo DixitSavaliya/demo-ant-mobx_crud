@@ -1,13 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Provider } from 'mobx-react';
-import 'antd/dist/antd.css';
-import 'antd/dist/antd.less';
 import reportWebVitals from './reportWebVitals';
 import App from './App';
 import postStore from './store/PostStore';
 import userStore from './store/UserStore';
 import loginStore from './store/LoginStore';
+import 'antd/dist/antd.css';
 
 const store = {postStore,userStore,loginStore};
 

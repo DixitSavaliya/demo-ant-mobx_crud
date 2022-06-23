@@ -5,124 +5,145 @@ import { inject, observer } from 'mobx-react';
 const Post = inject('store')(
   observer(({ store, otherProp }) => {
     const columns = [
-        {
-          title: 'Title',
-          dataIndex: 'title',
-          key: 'title',
-        },
-        {
-          title: 'Body',
-          dataIndex: 'body',
-          key: 'body',
-        },
-        {
-          title: 'Action',
-          render: (record,index) => 
-          <>
-          <a onClick={() => updateData(record)}>Edit</a>&nbsp;&nbsp;&nbsp;
-          <a onClick={() => deleteData(record.title)}>Delete</a>
-          </>,
-        },
-      ];
+      {
+        title: 'Title',
+        dataIndex: 'title',
+        key: 'title',
 
+      },
+      {
+        title: 'Body',
+        dataIndex: 'body',
+        key: 'body',
+      },
+      {
+        title: 'Action',
+        render: (record) =>
+          <>
+            <a onClick={() => updateData(record)}>Edit</a>&nbsp;&nbsp;&nbsp;
+            <a onClick={() => deleteData(record.title)}>Delete</a>
+          </>,
+      },
+    ];
+    const [form] = Form.useForm();
     const [show, setShow] = useState(false);
     const [data, setData] = useState(store.postStore.data);
-    const [title, setTitle] = useState('');
-    const [body, setBody] = useState('');
     const [update, setUpdate] = useState(false);
     const [updateIndex, setUpdateIndex] = useState({});
 
     useEffect(() => {
       setData(store.postStore?.data);
-    }, [data,store.postStore?.data]);
+    }, [data, store.postStore?.data]);
 
     const addPost = () => {
       setShow(true);
     };
 
     const deleteData = (title) => {
-        store.postStore.deleteData(title);
+      store.postStore.deleteData(title);
     }
 
     const updateData = (data) => {
-        setUpdateIndex({
-            title:data.title,
-            body:data.body
-        });
-        setUpdate(true);
-        setShow(true);
-
-        setTitle(data.title);
-        setBody(data.body);
+      form.setFieldsValue({
+        title: data.title,
+        body: data.body
+    });
+      setUpdateIndex({
+        title: data.title,
+        body: data.body
+      });
+      setUpdate(true);
+      setShow(true);
     }
 
-    const handleSubmit = async () => {
+    const onFinishUpdate = async (values) => {
       const data = {
-        title: title,
-        body: body,
+        data: updateIndex,
+        title: values.title,
+        body: values.body,
+      };
+
+      store.postStore.updatePost(data);
+      const addedData = await store.postStore?.data;
+      setData(addedData?.data);
+      setUpdate(false);
+      setShow(false);
+      setUpdateIndex(null);
+    }
+
+    const onFinishAdd = async (values) => {
+      const data = {
+        title: values.title,
+        body: values.body,
       };
       store.postStore.addPost(data);
       const addedData = await store.postStore?.data;
       setData(addedData?.data);
-      setTitle('');
-      setBody('');
       setShow(false);
-    };
+  };
 
-    const handleEdit = async () => {
-        const data = {
-            data: updateIndex,
-            title: title,
-            body: body,
-          };
+  const onFinishFailed = (errorInfo) => {
+      console.log('Failed:', errorInfo);
+  };
 
-          store.postStore.updatePost(data);
-          const addedData = await store.postStore?.data;
-          setData(addedData?.data);
-          setTitle('');
-          setBody('');
-          setUpdate(false);
-          setShow(false);
-          setUpdateIndex(null);
-    }
-
-    const handleTitleChange = (e) => {
-      setTitle(e.target.value);
-    };
-
-    const handleBodyChange = (e) => {
-      setBody(e.target.value);
-    };
 
     return (
       <>
-        <Button type="primary" onClick={addPost} style={{marginBottom:'1rem'}}>
+        <Button type="primary" onClick={addPost} style={{ marginBottom: '1rem' }}>
           Add Post
         </Button>
         {show && (
-          <Form layout="vertical">
-            <Form.Item>
-              <Input
-               value={title}
-                placeholder="Title"
-                name="title"
-                onChange={handleTitleChange}
-              />
+          <Form
+            name="basic"
+            form={form}
+            labelCol={{
+              span: 8,
+            }}
+            wrapperCol={{
+              span: 16,
+            }}
+            initialValues={{
+              remember: true,
+              title:updateIndex.title,
+              body:updateIndex.body
+            }}
+            onFinish={!update ? onFinishAdd : onFinishUpdate}
+            onFinishFailed={onFinishFailed}
+            autoComplete="off"
+          >
+            <Form.Item
+              label="Title"
+              name="title"
+              rules={[
+                {
+                  required: true,
+                  message: 'Please input your title!',
+                },
+              ]}
+            >
+              <Input/>
             </Form.Item>
-            <Form.Item>
-              <Input
-              value={body}
-                placeholder="Body"
-                name="body"
-                onChange={handleBodyChange}
-              />
+
+            <Form.Item
+              label="Body"
+              name="body"
+              rules={[
+                {
+                  required: true,
+                  message: 'Please input your body!',
+                },
+              ]}
+            >
+              <Input/>
             </Form.Item>
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                onClick={!update ? handleSubmit : handleEdit}
-              >
+
+            <Form.Item
+              wrapperCol={{
+                offset: 8,
+                span: 16,
+              }}
+            >
+              <Button type="primary" htmlType="submit">
                 {!update ? 'Add' : 'Edit'}
               </Button>
             </Form.Item>
